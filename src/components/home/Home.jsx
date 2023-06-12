@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
-import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebase from '../../config/firebase';
 import './Home.css';
@@ -29,6 +29,7 @@ const Home = ({ handleLogout }) => {
         createdAt: new Date(),
         authorEmail: user.email,
         authorName: user.displayName || user.email.split('@')[0],
+        archived: false,
       };
 
       try {
@@ -44,7 +45,7 @@ const Home = ({ handleLogout }) => {
     e.stopPropagation();
     if (e.key === 'Enter' || e.target.classList.contains('update-button')) {
       const todoRef = doc(getFirestore(), 'todos', id);
-  
+
       try {
         await updateDoc(todoRef, {
           text: editedTodoText,
@@ -55,7 +56,7 @@ const Home = ({ handleLogout }) => {
         console.error('Error updating todo:', error);
       }
     }
-  };  
+  };
 
   const handleEditTodo = (e, id) => {
     e.stopPropagation();
@@ -73,6 +74,19 @@ const Home = ({ handleLogout }) => {
       await deleteDoc(todoRef);
     } catch (error) {
       console.error('Error deleting todo:', error);
+    }
+  };
+
+  const handleArchiveTodo = async (e, id) => {
+    e.stopPropagation();
+    const todoRef = doc(getFirestore(), 'todos', id);
+
+    try {
+      await updateDoc(todoRef, {
+        archived: !todoRef.archived,
+      });
+    } catch (error) {
+      console.error('Error archiving todo:', error);
     }
   };
 
@@ -94,7 +108,7 @@ const Home = ({ handleLogout }) => {
     });
 
     const unsubscribeSnapshot = onSnapshot(
-      query(todosCollection, orderBy('createdAt')),
+      query(todosCollection, where('archived', '==', false), orderBy('createdAt')),
       (querySnapshot) => {
         const todosData = [];
         querySnapshot.forEach((doc) => {
@@ -177,6 +191,11 @@ const Home = ({ handleLogout }) => {
             ) : (
               <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
                 Edit
+              </button>
+            )}
+            {todo.completed && !todo.archived && (
+              <button onClick={(e) => handleArchiveTodo(e, todo.id)} className="archive-button">
+                Arquivar
               </button>
             )}
             <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
