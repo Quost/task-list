@@ -1,23 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import './Home.css';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import firebase from '../../config/firebase';
+import './Home.css';
 
-const Home = ({ user, handleLogout }) => {
+const todosCollection = collection(getFirestore(), 'todos');
+
+const Home = ({ handleLogout }) => {
+  console.log('Home.jsx');
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
-  const db = getFirestore();
+  const snapshotListenerRef = useRef(null);
 
-  const todosCollection = collection(db, 'todos');
+  const auth = getAuth();
 
   const handleAddTodo = async () => {
     if (newTodo.trim() !== '') {
       const todo = {
         text: newTodo,
         completed: false,
+        createdAt: new Date(),
+        authorEmail: user.email,
+        authorName: user.displayName || user.email.split('@')[0],
       };
 
       try {
@@ -30,7 +39,7 @@ const Home = ({ user, handleLogout }) => {
   };
 
   const handleDeleteTodo = async (id) => {
-    const todoRef = doc(db, 'todos', id);
+    const todoRef = doc(getFirestore(), 'todos', id);
 
     try {
       await deleteDoc(todoRef);
@@ -40,7 +49,7 @@ const Home = ({ user, handleLogout }) => {
   };
 
   const handleToggleTodo = async (id, completed) => {
-    const todoRef = doc(db, 'todos', id);
+    const todoRef = doc(getFirestore(), 'todos', id);
 
     try {
       await updateDoc(todoRef, {
@@ -52,7 +61,11 @@ const Home = ({ user, handleLogout }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(todosCollection, (querySnapshot) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    const unsubscribeSnapshot = onSnapshot(todosCollection, (querySnapshot) => {
       const todosData = [];
       querySnapshot.forEach((doc) => {
         todosData.push({
@@ -63,8 +76,15 @@ const Home = ({ user, handleLogout }) => {
       setTodos(todosData);
     });
 
-    return () => unsubscribe();
-  }, [todosCollection]);
+    snapshotListenerRef.current = [unsubscribeAuth, unsubscribeSnapshot];
+
+    return () => {
+      if (snapshotListenerRef.current) {
+        snapshotListenerRef.current[0]();
+        snapshotListenerRef.current[1]();
+      }
+    };
+  }, [auth]);
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -77,9 +97,19 @@ const Home = ({ user, handleLogout }) => {
     navigate('/login');
   };
 
+  const getDisplayName = () => {
+    if (user && user.displayName) {
+      return user.displayName;
+    } else if (user && user.email) {
+      return user.email.split('@')[0]; // Pega a parte antes do "@" no email
+    } else {
+      return '';
+    }
+  };
+
   return (
     <div className="home-container">
-      <h1>Bem-vindo, {user.displayName}!</h1>
+      <h1>Bem-vindo, {getDisplayName()}!</h1>
 
       <div className="todo-list">
         {todos.map((todo) => (
@@ -95,6 +125,7 @@ const Home = ({ user, handleLogout }) => {
               className="todo-checkbox"
             />
             <span className="todo-text">{todo.text}</span>
+            <span className="todo-author">{todo.authorName}</span>
             <button onClick={() => handleDeleteTodo(todo.id)} className="delete-button">
               <RiDeleteBinLine />
             </button>

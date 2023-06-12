@@ -9,6 +9,7 @@ import NotFound from './components/not-found/NotFound';
 import firebase from './config/firebase';
 
 const App = () => {
+  console.log("App.js")
   const [user, setUser] = useState(null);
   const auth = getAuth();  
 
@@ -17,16 +18,20 @@ const App = () => {
   };
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("before setUser")
+      setUser(user);      
+      console.log("after setUser")
     });
+
+    return () => unsubscribe();
   }, [auth]);
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={user ? <Home user={user} handleLogout={handleLogout} /> : <Navigate to="/login" />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+        <Route path="/" element={user ? <Home user={user} handleLogout={handleLogout} /> : <Navigate to="/login" replace />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -55,6 +55,11 @@
     border: 1px solid #ccc;
     border-radius: 4px;
   }
+
+  .todo-author {
+    font-size: 12px;
+    opacity: 0.7;
+  }
   
   .add-button {
     background-color: #007bff;
