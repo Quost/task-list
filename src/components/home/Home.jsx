@@ -12,6 +12,8 @@ const Home = ({ handleLogout }) => {
   console.log('Home.jsx');
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [editTodo, setEditTodo] = useState(null);
+  const [editedTodoText, setEditedTodoText] = useState('');
   const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
@@ -38,7 +40,33 @@ const Home = ({ handleLogout }) => {
     }
   };
 
-  const handleDeleteTodo = async (id) => {
+  const handleUpdateTodo = async (e, id) => {
+    e.stopPropagation();
+    if (e.key === 'Enter' || e.target.classList.contains('update-button')) {
+      const todoRef = doc(getFirestore(), 'todos', id);
+  
+      try {
+        await updateDoc(todoRef, {
+          text: editedTodoText,
+        });
+        setEditTodo(null);
+        setEditedTodoText('');
+      } catch (error) {
+        console.error('Error updating todo:', error);
+      }
+    }
+  };  
+
+  const handleEditTodo = (e, id) => {
+    e.stopPropagation();
+    const todo = todos.find((todo) => todo.id === id);
+    setEditTodo(id);
+    setEditedTodoText(todo.text);
+  };
+
+
+  const handleDeleteTodo = async (e, id) => {
+    e.stopPropagation();
     const todoRef = doc(getFirestore(), 'todos', id);
 
     try {
@@ -64,7 +92,7 @@ const Home = ({ handleLogout }) => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
-  
+
     const unsubscribeSnapshot = onSnapshot(
       query(todosCollection, orderBy('createdAt')),
       (querySnapshot) => {
@@ -78,16 +106,16 @@ const Home = ({ handleLogout }) => {
         setTodos(todosData);
       }
     );
-  
+
     snapshotListenerRef.current = [unsubscribeAuth, unsubscribeSnapshot];
-  
+
     return () => {
       if (snapshotListenerRef.current) {
         snapshotListenerRef.current[0]();
         snapshotListenerRef.current[1]();
       }
     };
-  }, [auth]);  
+  }, [auth]);
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -121,19 +149,42 @@ const Home = ({ handleLogout }) => {
             className={`todo-item ${todo.completed ? 'completed' : ''}`}
             onClick={() => handleToggleTodo(todo.id, todo.completed)}
           >
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              readOnly
-              className="todo-checkbox"
-            />
-            <span className="todo-text">{todo.text}</span>
+            {editTodo === todo.id ? (
+              <input
+                type="text"
+                value={editedTodoText}
+                onChange={(e) => setEditedTodoText(e.target.value)}
+                onKeyDown={(e) => handleUpdateTodo(e, todo.id)}
+                autoFocus
+              />
+            ) : (
+              <>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  readOnly
+                  className="todo-checkbox"
+                />
+                <span className="todo-text">{todo.text}</span>
+              </>
+            )}
             <span className="todo-author">{todo.authorName}</span>
-            <button onClick={() => handleDeleteTodo(todo.id)} className="delete-button">
+            {/* <span className="todo-date">{formatDate(todo.createdAt)}</span> */}
+            {editTodo === todo.id ? (
+              <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
+                Update
+              </button>
+            ) : (
+              <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
+                Edit
+              </button>
+            )}
+            <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
               <RiDeleteBinLine />
             </button>
           </div>
         ))}
+
       </div>
 
       <div className="todo-input">
