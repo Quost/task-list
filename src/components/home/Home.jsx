@@ -77,13 +77,13 @@ const Home = ({ handleLogout }) => {
     }
   };
 
-  const handleArchiveTodo = async (e, id) => {
+  const handleArchiveTodo = async (e, id, archived) => {
     e.stopPropagation();
     const todoRef = doc(getFirestore(), 'todos', id);
 
     try {
       await updateDoc(todoRef, {
-        archived: !todoRef.archived,
+        archived: !archived,
       });
     } catch (error) {
       console.error('Error archiving todo:', error);
@@ -176,7 +176,7 @@ const Home = ({ handleLogout }) => {
           <option value="all">Todos os itens</option>
           <option value="completed">Todos os itens finalizados</option>
           <option value="pending">Todos os itens pendentes</option>
-          <option value="archived">Mostrar itens ocultados</option>
+          <option value="archived">Mostrar itens arquivados</option>
           <option value="user">Filtro por usuário</option>
         </select>
       </div>
@@ -217,9 +217,9 @@ const Home = ({ handleLogout }) => {
                 Edit
               </button>
             )}
-            {todo.completed && !todo.archived && (
-              <button onClick={(e) => handleArchiveTodo(e, todo.id)} className="archive-button">
-                Arquivar
+            {todo.completed && (
+              <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
+                {todo.archived ? 'Desarquivar' : 'Arquivar'}
               </button>
             )}
             <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
