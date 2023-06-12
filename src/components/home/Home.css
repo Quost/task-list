@@ -25,6 +25,11 @@
     text-decoration: line-through;
     color: #888;
   }
+
+  .todo-item.locked {
+    opacity: 0.5;
+    pointer-events: none;
+  }  
   
   .todo-checkbox {
     margin-right: 10px;

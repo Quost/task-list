@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
-import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebase from '../../config/firebase';
 import './Home.css';
@@ -45,15 +45,19 @@ const Home = ({ handleLogout }) => {
     e.stopPropagation();
     if (e.key === 'Enter' || e.target.classList.contains('update-button')) {
       const todoRef = doc(getFirestore(), 'todos', id);
+      const todoSnapshot = await getDoc(todoRef);
+      const todo = todoSnapshot.data();
 
-      try {
-        await updateDoc(todoRef, {
-          text: editedTodoText,
-        });
-        setEditTodo(null);
-        setEditedTodoText('');
-      } catch (error) {
-        console.error('Error updating todo:', error);
+      if (!todo.locked || (todo.locked && todo.authorEmail === user.email)) {
+        try {
+          await updateDoc(todoRef, {
+            text: editedTodoText,
+          });
+          setEditTodo(null);
+          setEditedTodoText('');
+        } catch (error) {
+          console.error('Error updating todo:', error);
+        }
       }
     }
   };
@@ -69,11 +73,15 @@ const Home = ({ handleLogout }) => {
   const handleDeleteTodo = async (e, id) => {
     e.stopPropagation();
     const todoRef = doc(getFirestore(), 'todos', id);
+    const todoSnapshot = await getDoc(todoRef);
+    const todo = todoSnapshot.data();
 
-    try {
-      await deleteDoc(todoRef);
-    } catch (error) {
-      console.error('Error deleting todo:', error);
+    if (!todo.locked || (todo.locked && todo.authorEmail === user.email)) {
+      try {
+        await deleteDoc(todoRef);
+      } catch (error) {
+        console.error('Error deleting todo:', error);
+      }
     }
   };
 
@@ -92,18 +100,39 @@ const Home = ({ handleLogout }) => {
 
   const handleToggleTodo = async (id, completed) => {
     const todoRef = doc(getFirestore(), 'todos', id);
+    const todoSnapshot = await getDoc(todoRef);
+    const todo = todoSnapshot.data();
 
-    try {
-      await updateDoc(todoRef, {
-        completed: !completed,
-      });
-    } catch (error) {
-      console.error('Error updating todo:', error);
+    if (!todo.locked || (todo.locked && todo.authorEmail === user.email)) {
+      try {
+        await updateDoc(todoRef, {
+          completed: !completed,
+        });
+      } catch (error) {
+        console.error('Error updating todo:', error);
+      }
     }
   };
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value);
+  };
+
+  const handleLockTodo = async (e, id) => {
+    e.stopPropagation();
+    const todoRef = doc(getFirestore(), 'todos', id);
+    const todoSnapshot = await getDoc(todoRef);
+    const todo = todoSnapshot.data();
+
+    if (todo.authorEmail === user.email) {
+      try {
+        await updateDoc(todoRef, {
+          locked: !todo.locked,
+        });
+      } catch (error) {
+        console.error('Error updating todo:', error);
+      }
+    }
   };
 
   useEffect(() => {
@@ -125,7 +154,7 @@ const Home = ({ handleLogout }) => {
       // Adicione o filtro por usuário aqui
     }
 
-    const unsubscribeSnapshot = onSnapshot(todosQuery, (querySnapshot) => {
+    const unsubscribeSnapshot = onSnapshot(todosQuery, orderBy('createdAt'), (querySnapshot) => {
       const todosData = [];
       querySnapshot.forEach((doc) => {
         todosData.push({
@@ -185,7 +214,7 @@ const Home = ({ handleLogout }) => {
         {todos.map((todo) => (
           <div
             key={todo.id}
-            className={`todo-item ${todo.completed ? 'completed' : ''}`}
+            className={`todo-item ${todo.completed ? 'completed' : ''} ${todo.locked && todo.authorEmail !== user.email ? 'locked' : ''}`}
             onClick={() => handleToggleTodo(todo.id, todo.completed)}
           >
             {editTodo === todo.id ? (
@@ -208,23 +237,40 @@ const Home = ({ handleLogout }) => {
               </>
             )}
             <span className="todo-author">{todo.authorName}</span>
-            {editTodo === todo.id ? (
-              <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
-                Update
-              </button>
-            ) : (
-              <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
-                Edit
-              </button>
+            {(!todo.locked || (todo.locked && todo.authorEmail === user.email)) && (
+              <>
+                {editTodo === todo.id ? (
+                  <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
+                    Update
+                  </button>
+                ) : (
+                  <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
+                    Edit
+                  </button>
+                )}
+                {todo.completed && (
+                  <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
+                    {todo.archived ? 'Desarquivar' : 'Arquivar'}
+                  </button>
+                )}
+                {todo.authorEmail === user.email && (
+                  <button
+                    onClick={(e) => handleLockTodo(e, todo.id)}
+                    className={`lock-button ${todo.locked ? 'locked' : ''}`}
+                  >
+                    {todo.locked ? 'Desbloquear' : 'Bloquear'}
+                  </button>
+                )}
+                <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
+                  <RiDeleteBinLine />
+                </button>
+              </>
             )}
-            {todo.completed && (
-              <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
-                {todo.archived ? 'Desarquivar' : 'Arquivar'}
-              </button>
+            {todo.locked && (
+              <div className="lock-indicator">
+                <span role="img" aria-label="Locked">🔒</span>
+              </div>
             )}
-            <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
-              <RiDeleteBinLine />
-            </button>
           </div>
         ))}
       </div>
