@@ -9,12 +9,12 @@ import './Home.css';
 const todosCollection = collection(getFirestore(), 'todos');
 
 const Home = ({ handleLogout }) => {
-  console.log('Home.jsx');
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [editTodo, setEditTodo] = useState(null);
   const [editedTodoText, setEditedTodoText] = useState('');
   const [user, setUser] = useState(null);
+  const [filter, setFilter] = useState('all');
 
   const navigate = useNavigate();
   const snapshotListenerRef = useRef(null);
@@ -26,10 +26,10 @@ const Home = ({ handleLogout }) => {
       const todo = {
         text: newTodo,
         completed: false,
+        archived: false,
         createdAt: new Date(),
         authorEmail: user.email,
         authorName: user.displayName || user.email.split('@')[0],
-        archived: false,
       };
 
       try {
@@ -102,24 +102,39 @@ const Home = ({ handleLogout }) => {
     }
   };
 
+  const handleFilterChange = (event) => {
+    setFilter(event.target.value);
+  };
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
 
-    const unsubscribeSnapshot = onSnapshot(
-      query(todosCollection, where('archived', '==', false), orderBy('createdAt')),
-      (querySnapshot) => {
-        const todosData = [];
-        querySnapshot.forEach((doc) => {
-          todosData.push({
-            id: doc.id,
-            ...doc.data(),
-          });
+    let todosQuery = todosCollection;
+
+    if (filter === 'completed') {
+      todosQuery = query(todosQuery, where('completed', '==', true), where('archived', '==', false));
+    } else if (filter === 'pending') {
+      todosQuery = query(todosQuery, where('completed', '==', false));
+    } else if (filter === 'archived') {
+      todosQuery = query(todosQuery, where('archived', '==', true));
+    } else if (filter === 'all') {
+      todosQuery = query(todosQuery, where('archived', '==', false));
+    } else if (filter === 'user') {
+      // Adicione o filtro por usuário aqui
+    }
+
+    const unsubscribeSnapshot = onSnapshot(todosQuery, (querySnapshot) => {
+      const todosData = [];
+      querySnapshot.forEach((doc) => {
+        todosData.push({
+          id: doc.id,
+          ...doc.data(),
         });
-        setTodos(todosData);
-      }
-    );
+      });
+      setTodos(todosData);
+    });
 
     snapshotListenerRef.current = [unsubscribeAuth, unsubscribeSnapshot];
 
@@ -129,7 +144,7 @@ const Home = ({ handleLogout }) => {
         snapshotListenerRef.current[1]();
       }
     };
-  }, [auth]);
+  }, [auth, filter]);
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -146,7 +161,7 @@ const Home = ({ handleLogout }) => {
     if (user && user.displayName) {
       return user.displayName;
     } else if (user && user.email) {
-      return user.email.split('@')[0]; // Pega a parte antes do "@" no email
+      return user.email.split('@')[0];
     } else {
       return '';
     }
@@ -155,6 +170,16 @@ const Home = ({ handleLogout }) => {
   return (
     <div className="home-container">
       <h1>Bem-vindo, {getDisplayName()}!</h1>
+
+      <div className="filter">
+        <select value={filter} onChange={handleFilterChange}>
+          <option value="all">Todos os itens</option>
+          <option value="completed">Todos os itens finalizados</option>
+          <option value="pending">Todos os itens pendentes</option>
+          <option value="archived">Mostrar itens ocultados</option>
+          <option value="user">Filtro por usuário</option>
+        </select>
+      </div>
 
       <div className="todo-list">
         {todos.map((todo) => (
@@ -183,7 +208,6 @@ const Home = ({ handleLogout }) => {
               </>
             )}
             <span className="todo-author">{todo.authorName}</span>
-            {/* <span className="todo-date">{formatDate(todo.createdAt)}</span> */}
             {editTodo === todo.id ? (
               <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
                 Update
@@ -203,7 +227,6 @@ const Home = ({ handleLogout }) => {
             </button>
           </div>
         ))}
-
       </div>
 
       <div className="todo-input">
