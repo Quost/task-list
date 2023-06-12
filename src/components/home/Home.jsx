@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
-import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebase from '../../config/firebase';
 import './Home.css';
@@ -64,27 +64,30 @@ const Home = ({ handleLogout }) => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
-
-    const unsubscribeSnapshot = onSnapshot(todosCollection, (querySnapshot) => {
-      const todosData = [];
-      querySnapshot.forEach((doc) => {
-        todosData.push({
-          id: doc.id,
-          ...doc.data(),
+  
+    const unsubscribeSnapshot = onSnapshot(
+      query(todosCollection, orderBy('createdAt')),
+      (querySnapshot) => {
+        const todosData = [];
+        querySnapshot.forEach((doc) => {
+          todosData.push({
+            id: doc.id,
+            ...doc.data(),
+          });
         });
-      });
-      setTodos(todosData);
-    });
-
+        setTodos(todosData);
+      }
+    );
+  
     snapshotListenerRef.current = [unsubscribeAuth, unsubscribeSnapshot];
-
+  
     return () => {
       if (snapshotListenerRef.current) {
         snapshotListenerRef.current[0]();
         snapshotListenerRef.current[1]();
       }
     };
-  }, [auth]);
+  }, [auth]);  
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
