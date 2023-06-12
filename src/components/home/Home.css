@@ -1,42 +1,84 @@
 .home-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
   }
   
   h1 {
     font-size: 24px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
   
-  ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  .todo-list {
+    margin-bottom: 20px;
   }
   
-  li {
-    font-size: 18px;
-    margin-bottom: 8px;
-  }
-  
-  .logout-button {
-    padding: 8px 16px;
-    font-size: 18px;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 4px;
+  .todo-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
     cursor: pointer;
   }
   
-  .logout-button:hover {
-    background-color: #c82333;
+  .todo-item.completed {
+    text-decoration: line-through;
+    color: #888;
   }
   
-  .logout-button:active {
-    background-color: #a71d2a;
+  .todo-checkbox {
+    margin-right: 10px;
+  }
+  
+  .todo-text {
+    flex-grow: 1;
+  }
+  
+  .delete-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #888;
+    margin-left: 10px;
+  }
+  
+  .todo-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .todo-input input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .add-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .logout-button {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .logout-button:hover,
+  .add-button:hover,
+  .delete-button:hover {
+    opacity: 0.8;
   }
   
