@@ -1,45 +1,70 @@
 import React, { useEffect, useState } from 'react';
 import './Home.css';
 import { useNavigate } from 'react-router-dom';
-import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri'; // Import icons from react-icons library
+import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const Home = ({ user, handleLogout }) => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
 
   const navigate = useNavigate();
+  const db = getFirestore();
 
-  const handleAddTodo = () => {
+  const todosCollection = collection(db, 'todos');
+
+  const handleAddTodo = async () => {
     if (newTodo.trim() !== '') {
       const todo = {
-        id: Date.now(),
         text: newTodo,
         completed: false,
       };
-      setTodos((prevTodos) => [...prevTodos, todo]);
-      setNewTodo('');
+
+      try {
+        await addDoc(todosCollection, todo);
+        setNewTodo('');
+      } catch (error) {
+        console.error('Error adding todo:', error);
+      }
     }
   };
 
-  const handleDeleteTodo = (id) => {
-    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+  const handleDeleteTodo = async (id) => {
+    const todoRef = doc(db, 'todos', id);
+
+    try {
+      await deleteDoc(todoRef);
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
   };
 
-  const handleToggleTodo = (id) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
+  const handleToggleTodo = async (id, completed) => {
+    const todoRef = doc(db, 'todos', id);
+
+    try {
+      await updateDoc(todoRef, {
+        completed: !completed,
+      });
+    } catch (error) {
+      console.error('Error updating todo:', error);
+    }
   };
 
   useEffect(() => {
-    setTodos([
-      { id: 1, text: 'Todo 1', completed: false },
-      { id: 2, text: 'Todo 2', completed: true },
-      { id: 3, text: 'Todo 3', completed: false },
-    ]);
-  }, []);
+    const unsubscribe = onSnapshot(todosCollection, (querySnapshot) => {
+      const todosData = [];
+      querySnapshot.forEach((doc) => {
+        todosData.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+      setTodos(todosData);
+    });
+
+    return () => unsubscribe();
+  }, [todosCollection]);
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -61,7 +86,7 @@ const Home = ({ user, handleLogout }) => {
           <div
             key={todo.id}
             className={`todo-item ${todo.completed ? 'completed' : ''}`}
-            onClick={() => handleToggleTodo(todo.id)}
+            onClick={() => handleToggleTodo(todo.id, todo.completed)}
           >
             <input
               type="checkbox"
@@ -82,7 +107,7 @@ const Home = ({ user, handleLogout }) => {
           type="text"
           value={newTodo}
           onChange={(e) => setNewTodo(e.target.value)}
-          onKeyDown={handleKeyDown} // Handle "Enter" key press
+          onKeyDown={handleKeyDown}
           placeholder="Enter a new todo"
         />
         <button onClick={handleAddTodo} className="add-button">
