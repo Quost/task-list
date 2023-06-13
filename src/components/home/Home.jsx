@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiAddLine, RiDeleteBinLine, RiPencilLine, RiLockLine, RiCheckLine, RiArchiveLine, RiArrowGoBackLine } from 'react-icons/ri';
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import firebase from '../../config/firebase';
@@ -239,18 +239,22 @@ const Home = ({ handleLogout }) => {
             <span className="todo-author">{todo.authorName}</span>
             {(!todo.locked || (todo.locked && todo.authorEmail === user.email)) && (
               <>
-                {editTodo === todo.id ? (
-                  <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
-                    Update
-                  </button>
-                ) : (
-                  <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
-                    Edit
-                  </button>
+                {!todo.archived && (
+                  <>
+                    {editTodo === todo.id ? (
+                      <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
+                        <RiCheckLine className='update-button' />
+                      </button>
+                    ) : (
+                      <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
+                        <RiPencilLine />
+                      </button>
+                    )}
+                  </>
                 )}
                 {todo.completed && (
                   <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
-                    {todo.archived ? 'Desarquivar' : 'Arquivar'}
+                    {todo.archived ? <RiArrowGoBackLine /> : <RiArchiveLine />}
                   </button>
                 )}
                 {todo.authorEmail === user.email && (
@@ -258,7 +262,7 @@ const Home = ({ handleLogout }) => {
                     onClick={(e) => handleLockTodo(e, todo.id)}
                     className={`lock-button ${todo.locked ? 'locked' : ''}`}
                   >
-                    {todo.locked ? 'Desbloquear' : 'Bloquear'}
+                    {todo.locked ? <RiLockLine /> : <RiLockLine />}
                   </button>
                 )}
                 <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
@@ -266,7 +270,7 @@ const Home = ({ handleLogout }) => {
                 </button>
               </>
             )}
-            {todo.locked && (
+            {todo.locked &&todo.authorEmail !== user.email && (
               <div className="lock-indicator">
                 <span role="img" aria-label="Locked">🔒</span>
               </div>

@@ -1,94 +1,173 @@
 .home-container {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
-  
-  .todo-list {
-    margin-bottom: 20px;
-  }
-  
-  .todo-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-  
-  .todo-item.completed {
-    text-decoration: line-through;
-    color: #888;
-  }
+  max-width: 500px;
+  margin: 40px auto 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9; /* Cor de fundo minimalista */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra do card */
+}
 
-  .todo-item.locked {
-    opacity: 0.5;
-    pointer-events: none;
-  }  
-  
-  .todo-checkbox {
-    margin-right: 10px;
-  }
-  
-  .todo-text {
-    flex-grow: 1;
-  }
-  
-  .delete-button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    color: #888;
-    margin-left: 10px;
-  }
-  
-  .todo-input {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  
-  .todo-input input {
-    flex-grow: 1;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+  text-transform: capitalize;
+}
 
-  .todo-author {
-    font-size: 12px;
-    opacity: 0.7;
-  }
-  
-  .add-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .logout-button {
-    background-color: #dc3545;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .logout-button:hover,
-  .add-button:hover,
-  .delete-button:hover {
-    opacity: 0.8;
-  }
-  
+.filter {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.filter select {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.todo-list {
+  margin-bottom: 20px;
+  background-color: #fff; /* Cor de fundo do card */
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra do card */
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.todo-item.completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.todo-item.locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.todo-checkbox {
+  margin-right: 10px;
+}
+
+.todo-text {
+  flex-grow: 1;
+}
+
+.edit-button,
+.lock-button,
+.unlock-button,
+.update-button,
+.archive-button,
+.delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  margin-left: 8px;
+  background-color: transparent;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.edit-button:hover,
+.lock-button:hover,
+.unlock-button:hover,
+.update-button:hover,
+.archive-button:hover,
+.delete-button:hover {
+  color: #333;
+}
+
+.lock-button.locked {
+  color: #f00;
+}
+
+.lock-button.locked:hover {
+  color: #c00;
+}
+
+.unlock-button {
+  color: #0c0;
+}
+
+.unlock-button:hover {
+  color: #090;
+}
+
+.update-button {
+  color: #08f;
+}
+
+.update-button:hover {
+  color: #05c;
+}
+
+.archive-button {
+  color: #555;
+}
+
+.archive-button:hover {
+  color: #333;
+}
+
+.delete-button {
+  color: #999;
+}
+
+.delete-button:hover {
+  color: #777;
+}
+
+.todo-input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.todo-input input {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.todo-author {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.add-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logout-button:hover,
+.add-button:hover,
+.delete-button:hover {
+  opacity: 0.8;
+}
+
