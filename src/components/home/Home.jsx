@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { RiAddLine, RiDeleteBinLine, RiPencilLine, RiLockLine, RiCheckLine, RiArchiveLine, RiArrowGoBackLine } from 'react-icons/ri';
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where, getDoc, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { format } from 'date-fns';
 import firebase from '../../config/firebase';
 import './Home.css';
 
@@ -28,7 +29,7 @@ const Home = ({ handleLogout }) => {
         text: newTodo,
         completed: false,
         archived: false,
-        createdAt: new Date(),
+        createdAt: new Date().getTime(),
         authorEmail: user.email,
         authorName: user.displayName || user.email.split('@')[0],
       };
@@ -233,6 +234,12 @@ const Home = ({ handleLogout }) => {
     navigate('/login');
   };
 
+  const formatDate = (date) => {
+    console.log(date);
+    const formattedDate = format(date, 'dd/MM/yyyy HH:mm:ss');
+    return formattedDate;
+  };
+
   const getDisplayName = () => {
     if (user && user.displayName) {
       return user.displayName;
@@ -295,6 +302,7 @@ const Home = ({ handleLogout }) => {
                 </>
               )}
               <span className="todo-author">{todo.authorName}</span>
+              <span className="todo-date">{formatDate(todo.createdAt)}</span>
               {(!todo.locked || (todo.locked && todo.authorEmail === user.email)) && (
                 <>
                   {todo.completed && (
