@@ -297,19 +297,6 @@ const Home = ({ handleLogout }) => {
               <span className="todo-author">{todo.authorName}</span>
               {(!todo.locked || (todo.locked && todo.authorEmail === user.email)) && (
                 <>
-                  {!todo.archived && (
-                    <>
-                      {editTodo === todo.id ? (
-                        <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
-                          <RiCheckLine className='update-button' />
-                        </button>
-                      ) : (
-                        <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
-                          <RiPencilLine />
-                        </button>
-                      )}
-                    </>
-                  )}
                   {todo.completed && (
                     <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
                       {todo.archived ? <RiArrowGoBackLine /> : <RiArchiveLine />}
@@ -322,6 +309,19 @@ const Home = ({ handleLogout }) => {
                     >
                       {todo.locked ? <RiLockLine /> : <RiLockLine />}
                     </button>
+                  )}
+                  {!todo.archived && (
+                    <>
+                      {editTodo === todo.id ? (
+                        <button onClick={(e) => handleUpdateTodo(e, todo.id)} className="update-button">
+                          <RiCheckLine className='update-button' />
+                        </button>
+                      ) : (
+                        <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
+                          <RiPencilLine />
+                        </button>
+                      )}
+                    </>
                   )}
                   <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
                     <RiDeleteBinLine />
