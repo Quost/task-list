@@ -1,6 +1,21 @@
-# Getting Started with Create React App
+# Aplicativo de To-Do List
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este é um aplicativo de To-Do List desenvolvido em React, baseado nas especificações fornecidas no Desafio.
+
+## Funcionalidades
+
+- Lista colaborativa: Vários usuários podem visualizar e interagir com a mesma lista.
+- Autenticação com login do Google.
+- Utilização de React Hooks.
+- Estilização personalizada.
+- Adicionar, marcar como concluído, editar e excluir itens da lista.
+- Arquivar itens concluídos para ocultá-los da listagem.
+- Filtro de exibição para todos os itens, itens finalizados, itens pendentes, filtro por usuário e mostrar itens ocultados.
+- Banco de dados Firestore do Firebase.
+- Bloqueio de itens criados para que apenas o usuário original possa editar, concluir ou excluir.
+- Exibição do nome, data e hora de criação e nome do usuário em cada item.
+- Publicação no servidor serverless do Firebase.
+- Atualização em tempo real, refletindo instantaneamente as alterações feitas por usuários na tela.
 
 ## Available Scripts
 
