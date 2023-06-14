@@ -9,10 +9,8 @@
 
 h1 {
   font-size: 24px;
-  margin-bottom: 20px;
   color: #333;
   text-align: center;
-  text-transform: capitalize;
 }
 
 .filter select {
@@ -184,4 +182,11 @@ h1 {
 .empty-message {
   text-align: center;
   color: #999;
+}
+
+.user-info {
+  align-items: center;
+  text-align: center;
+  font-weight: lighter;
+  margin: 0 auto 20px;
 }

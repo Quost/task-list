@@ -4,6 +4,7 @@ import { RiAddLine, RiDeleteBinLine, RiPencilLine, RiLockLine, RiCheckLine, RiAr
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy, where, getDoc, getDocs } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { format } from 'date-fns';
+import { Tooltip } from 'react-tooltip'
 import firebase from '../../config/firebase';
 import './Home.css';
 
@@ -150,7 +151,6 @@ const Home = ({ handleLogout }) => {
   };
 
   const handleUserChange = (event) => {
-    console.log("handleUserChange", event.target.value)
     setSelectedUser(event.target.value);
   };
 
@@ -170,7 +170,6 @@ const Home = ({ handleLogout }) => {
     } else if (filter === 'all') {
       todosQuery = query(todosQuery, where('archived', '==', false));
     } else if (filter === 'user') {
-      console.log(selectedUser);
       if (selectedUser !== 'all') {
         todosQuery = query(
           todosQuery,
@@ -182,7 +181,7 @@ const Home = ({ handleLogout }) => {
       }
     }
 
-    const unsubscribeSnapshot = onSnapshot(todosQuery, orderBy('createdAt'), (querySnapshot) => {
+    const unsubscribeSnapshot = onSnapshot(todosQuery, orderBy('createdAt', 'desc'), (querySnapshot) => {
       const todosData = [];
       querySnapshot.forEach((doc) => {
         todosData.push({
@@ -235,7 +234,6 @@ const Home = ({ handleLogout }) => {
   };
 
   const formatDate = (date) => {
-    console.log(date);
     const formattedDate = format(date, 'dd/MM/yyyy HH:mm:ss');
     return formattedDate;
   };
@@ -252,7 +250,8 @@ const Home = ({ handleLogout }) => {
 
   return (
     <div className="home-container">
-      <h1>Bem-vindo, {getDisplayName()}!</h1>
+      <h1>Lista de Tarefas - Desafio</h1>
+      <h6 className='user-info'>Usuário logado: {getDisplayName()}</h6>
 
       <div className="filter">
         {filter === 'user' && (
@@ -301,12 +300,12 @@ const Home = ({ handleLogout }) => {
                   <span className="todo-text">{todo.text}</span>
                 </>
               )}
-              <span className="todo-author">{todo.authorName}</span>
-              <span className="todo-date">{formatDate(todo.createdAt)}</span>
+              <span className="todo-author" data-tooltip-id="my-tooltip" data-tooltip-content='Nome do criador'>{todo.authorName}</span>
+              <span className="todo-date" data-tooltip-id="my-tooltip" data-tooltip-content='Data de criação'>{formatDate(todo.createdAt)}</span>
               {(!todo.locked || (todo.locked && todo.authorEmail === user.email)) && (
                 <>
-                  {todo.completed && (
-                    <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button">
+                  {todo.completed && ( // se todo.archived mostra o texto 'desarquivar', se não mostra o texto 'arquivar'
+                    <button onClick={(e) => handleArchiveTodo(e, todo.id, todo.archived)} className="archive-button" data-tooltip-id="my-tooltip" data-tooltip-content={todo.archived ? 'Desarquivar tarefa' : 'Arquivar tarefa'}>
                       {todo.archived ? <RiArrowGoBackLine /> : <RiArchiveLine />}
                     </button>
                   )}
@@ -314,6 +313,7 @@ const Home = ({ handleLogout }) => {
                     <button
                       onClick={(e) => handleLockTodo(e, todo.id)}
                       className={`lock-button ${todo.locked ? 'locked' : ''}`}
+                      data-tooltip-id="my-tooltip" data-tooltip-content={todo.locked ? 'Desbloquear tarefa' : 'Bloquear tarefa'}
                     >
                       {todo.locked ? <RiLockLine /> : <RiLockLine />}
                     </button>
@@ -325,15 +325,16 @@ const Home = ({ handleLogout }) => {
                           <RiCheckLine className='update-button' />
                         </button>
                       ) : (
-                        <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button">
+                        <button onClick={(e) => handleEditTodo(e, todo.id)} className="edit-button" data-tooltip-id="my-tooltip" data-tooltip-content="Editar tarefa">
                           <RiPencilLine />
                         </button>
                       )}
                     </>
                   )}
-                  <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button">
+                  <button onClick={(e) => handleDeleteTodo(e, todo.id)} className="delete-button" data-tooltip-id="my-tooltip" data-tooltip-content="Excluir tarefa">
                     <RiDeleteBinLine />
                   </button>
+
                 </>
               )}
               {todo.locked && todo.authorEmail !== user.email && (
@@ -341,7 +342,9 @@ const Home = ({ handleLogout }) => {
                   <span role="img" aria-label="Locked">🔒</span>
                 </div>
               )}
+              <Tooltip id="my-tooltip" />
             </div>
+
           ))
         )}
       </div>
